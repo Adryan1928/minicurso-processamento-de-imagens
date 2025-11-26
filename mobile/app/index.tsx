@@ -32,10 +32,12 @@ export default function HomeScreen() {
     currentPath.value.reset();
   }, [setPaths, currentPath]);
 
-  async function loadSkImage(source: any): Promise<SkImage | null> {
+  async function loadSkImage(source: any, defaultImage: boolean = false): Promise<SkImage | null> {
     try {
-      const asset = ImgRN.resolveAssetSource(source);
-
+      let asset = {uri: source};
+      if(defaultImage) {
+        asset = ImgRN.resolveAssetSource(source);
+      }
       const response = await fetch(asset.uri);
       const buffer = await response.arrayBuffer();
       const skData = Skia.Data.fromBytes(new Uint8Array(buffer));
@@ -49,7 +51,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     async function load() {
-      const img = await loadSkImage(defaultImage);
+      const img = await loadSkImage(defaultImage, true);
       setSkImage(img);
     }
     load();
