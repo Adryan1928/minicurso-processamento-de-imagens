@@ -1,6 +1,5 @@
-venv/
 __pycache__/
-*.pyc
+venv/
 .env
-*.db
+test.db
 media/

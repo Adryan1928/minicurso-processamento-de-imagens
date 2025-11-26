@@ -1,11 +1,16 @@
 import os
-from fastapi import APIRouter, UploadFile, Form, Depends, HTTPException
+from fastapi import APIRouter, Form, UploadFile, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.dependecies import get_session
 from app.models import ImageItem
-from app.schemas import ImageResponse
+from app.schemas import AreaDataFormat, ImageResponse
 from fastapi.responses import FileResponse
 import uuid
+from app.code.fill_or_blur import draw_fill_or_blur_on_image
+import cv2
+import numpy as np
+from typing import List
+import json
 
 router = APIRouter()
 
@@ -16,8 +21,7 @@ os.makedirs(MEDIA_DIR, exist_ok=True)
 @router.post("/images/", response_model=ImageResponse)
 async def upload_image(
     image: UploadFile,
-    is_fill: bool = Form(...),
-    intensity: int = Form(...),
+    areas: str = Form(...),
     session: Session = Depends(get_session)
 ):
     ext = image.filename.split(".")[-1]
@@ -25,13 +29,23 @@ async def upload_image(
 
     file_path = f"{MEDIA_DIR}/{filename}"
 
+    areas = [AreaDataFormat(**area) for area in json.loads(areas)]
+
+    print(areas)
+
+    contents = await image.read()
+    np_img = cv2.imdecode(np.frombuffer(contents, np.uint8), cv2.IMREAD_COLOR)
+
+    processed_image = draw_fill_or_blur_on_image(
+        image=np_img,
+        areas=areas,
+    )
+
     with open(file_path, "wb") as f:
-        f.write(await image.read())
+        f.write(processed_image.read())
 
     item = ImageItem(
         filename=filename,
-        is_fill=is_fill,
-        intensity=intensity
     )
 
     session.add(item)
@@ -41,8 +55,6 @@ async def upload_image(
     return ImageResponse(
         id=item.id,
         filename=item.filename,
-        is_fill=item.is_fill,
-        intensity=item.intensity,
         url=f"/images/{item.filename}"
     )
 
@@ -60,8 +72,6 @@ def get_image(image_id: int, session: Session = Depends(get_session)):
     return ImageResponse(
         id=item.id,
         filename=item.filename,
-        is_fill=item.is_fill,
-        intensity=item.intensity,
         url=f"/media/{item.filename}"
     )
 

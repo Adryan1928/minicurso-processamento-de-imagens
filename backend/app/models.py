@@ -6,5 +6,3 @@ class ImageItem(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     filename = Column(String, nullable=False)
-    is_fill = Column(Boolean, default=False)
-    intensity = Column(Integer, default=3)

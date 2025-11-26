@@ -1,10 +1,13 @@
+from typing import Dict, List
 from pydantic import BaseModel
+class AreaDataFormat(BaseModel):
+    area_coordinates: List[Dict[str, float]]
+    is_fill: bool
+    intensity: int | None
 
 class ImageResponse(BaseModel):
     id: int
     filename: str
-    is_fill: bool
-    intensity: int
     url: str
 
     class Config:
