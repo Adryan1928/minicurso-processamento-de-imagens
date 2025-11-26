@@ -1,20 +1,20 @@
-import { StyleSheet, View, StatusBar } from "react-native";
+import { StyleSheet, View, StatusBar, Image as ImgRN } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button, Text } from "react-native-paper";
-import { Canvas, Group, Image, useImage, SkSize, Skia, Path, SkPath } from "@shopify/react-native-skia";
+import { Canvas, Image, SkSize, Skia, Path, SkPath, SkImage } from "@shopify/react-native-skia";
 import { useSharedValue, useDerivedValue, runOnJS } from "react-native-reanimated";
 import { useDrawContext } from "@/contexts/drawContext";
 import { Menu } from "@/components/menu";
 import { GestureDetector, Gesture, GestureHandlerRootView } from "react-native-gesture-handler";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const defaultImage = require("../assets/images/background-image.png");
 
 export default function HomeScreen() {
   const { mode, setMode, tool } = useDrawContext();
 
-  const [dimensions, setDimensions] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [paths, setPaths] = useState<SkPath[]>([]);
+  const [skImage, setSkImage] = useState<SkImage | null>(null);
 
   const canvasSize = useSharedValue<SkSize>({ width: 0, height: 0 });
   const imageWidth = useSharedValue(0);
@@ -25,16 +25,35 @@ export default function HomeScreen() {
 
   const currentPath = useSharedValue<SkPath>(Skia.Path.Make());
 
-  const skImage = useImage(defaultImage);
-
-
   const savePath = useCallback(() => {
     const newPath = Skia.Path.Make();
     newPath.addPath(currentPath.value);
     setPaths((prevPaths) => [...prevPaths, newPath]);
     currentPath.value.reset();
-    // console.log(paths)
   }, [setPaths, currentPath]);
+
+  async function loadSkImage(source: any): Promise<SkImage | null> {
+    try {
+      const asset = ImgRN.resolveAssetSource(source);
+
+      const response = await fetch(asset.uri);
+      const buffer = await response.arrayBuffer();
+      const skData = Skia.Data.fromBytes(new Uint8Array(buffer));
+      return Skia.Image.MakeImageFromEncoded(skData) ?? null;
+    } catch (e) {
+      console.error("Erro ao carregar imagem:", e);
+      return null;
+    }
+  }
+
+
+  useEffect(() => {
+    async function load() {
+      const img = await loadSkImage(defaultImage);
+      setSkImage(img);
+    }
+    load();
+  }, []);
   
 
   useDerivedValue(() => {
@@ -66,13 +85,6 @@ export default function HomeScreen() {
       imageWidth.value = width;
       imageHeight.value = scaledHeight;
     }
-
-    runOnJS(() => setDimensions({
-        x: imageXOffset.value,
-        y: imageYOffset.value,
-        width: imageWidth.value,
-        height: imageHeight.value,
-      }));
   });
 
 
@@ -142,12 +154,10 @@ export default function HomeScreen() {
                 <Path
                   key={index}
                   path={path}
-                  style="stroke"
-                  color="#0037ff"
-                  strokeWidth={4}
+                  style="fill"
+                  color="#000"
                 />
               ))}
-
               <Path path={currentPath} style="stroke" strokeWidth={4} color="#37607050" />
             </Canvas>
           </GestureDetector>
