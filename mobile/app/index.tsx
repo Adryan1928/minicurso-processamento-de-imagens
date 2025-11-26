@@ -42,6 +42,7 @@ export default function HomeScreen() {
       if(defaultImage) {
         asset = ImgRN.resolveAssetSource(source);
       }
+
       const response = await fetch(asset.uri);
       const buffer = await response.arrayBuffer();
       const skData = Skia.Data.fromBytes(new Uint8Array(buffer));
@@ -60,8 +61,6 @@ export default function HomeScreen() {
       intensity: 0
     }));
 
-    console.log("Areas to upload:", areas);
-
     const img = await skImageToMedia(skImage);
 
     uploadImageMutation.mutate({
@@ -69,8 +68,13 @@ export default function HomeScreen() {
       areas: areas,
     },
     {
-      onSuccess: () => {
-        console.log("Imagem enviada com sucesso!");
+      onSuccess: (result) => {
+        setPaths([]);
+        loadSkImage(`http://192.168.1.100:8000${result.data.url}`, false).then((loadedImg) => {
+          if (loadedImg) {
+            setSkImage(loadedImg);
+          }
+        });
       },
     }
   

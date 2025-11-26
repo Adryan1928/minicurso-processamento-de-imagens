@@ -55,7 +55,7 @@ async def upload_image(
     return ImageResponse(
         id=item.id,
         filename=item.filename,
-        url=f"/images/{item.filename}"
+        url=f"/media/{item.filename}"
     )
 
 

@@ -18,7 +18,6 @@ export const useUploadImage = () => useMutation({
             areas: JSON.stringify(image.areas),
         } as ImageUploadPayload
 
-        console.log("Uploading image with data:", data.areas);
         return uploadImage(data)
     },
     onSuccess: () => {
