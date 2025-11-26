@@ -2,9 +2,12 @@ import { useDrawContext } from "@/contexts/drawContext";
 import { StyleSheet, View } from "react-native";
 import { IconButton } from "react-native-paper";
 
+interface MenuProps {
+  onSave: () => void;
+}
 
-export function Menu() {
-  const { mode, setMode, tool, setTool } = useDrawContext();
+export function Menu({ onSave }: MenuProps) {
+  const { tool, setTool } = useDrawContext();
 
   return (
     <View style={styles.container}>
@@ -39,6 +42,7 @@ export function Menu() {
       <MenuItem
         icon="content-save"
         onPress={() => {
+          onSave();
           setTool('view');
         }}
       /> 

@@ -19,6 +19,7 @@ function onError(error: Error | AxiosError) {
 
     const { response } = error;
     if (process.env.NODE_ENV === "development") {
+      delete (response as any).data.image;
       console.log("~~~~~~~~~~~~~~~ Request error ~~~~~~~~~~~~~~~");
       console.log(JSON.stringify(response, null, 2));
     }
@@ -27,7 +28,8 @@ function onError(error: Error | AxiosError) {
 }
 
 const request = axios.create({
-  baseURL: process.env.API_URL,
+  // baseURL: process.env.API_URL,
+  baseURL: "http://192.168.1.100:8000",
   responseType: "json",
   withCredentials: true,
 });
@@ -48,4 +50,6 @@ export default {
     request.put<T>(url, data, config).then(onSuccess, onError),
   patch: <T>(url: string, data: any, config?: AxiosRequestConfig<any>) =>
     request.patch<T>(url, data, config).then(onSuccess, onError),
+  postForm: <T>(url: string, data: any, config?: AxiosRequestConfig<any>) =>
+    request.postForm<T>(url, data, config).then(onSuccess, onError),
 };

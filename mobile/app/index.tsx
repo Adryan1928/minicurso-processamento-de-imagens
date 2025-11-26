@@ -7,6 +7,8 @@ import { useDrawContext } from "@/contexts/drawContext";
 import { Menu } from "@/components/menu";
 import { GestureDetector, Gesture, GestureHandlerRootView } from "react-native-gesture-handler";
 import { useCallback, useEffect, useState } from "react";
+import { useUploadImage } from "@/hooks/images";
+import { pathToPoints, skImageToMedia } from "@/utils/form";
 
 const defaultImage = require("../assets/images/background-image.png");
 
@@ -24,6 +26,8 @@ export default function HomeScreen() {
   const canvasImageRatio = useSharedValue(1);
 
   const currentPath = useSharedValue<SkPath>(Skia.Path.Make());
+
+  const uploadImageMutation = useUploadImage();
 
   const savePath = useCallback(() => {
     const newPath = Skia.Path.Make();
@@ -47,6 +51,31 @@ export default function HomeScreen() {
       return null;
     }
   }
+
+  const onSave = async () => {
+    if (!skImage) return;
+    const areas = paths.map(p => ({
+      area_coordinates: pathToPoints(p),
+      is_fill: true,
+      intensity: 0
+    }));
+
+    console.log("Areas to upload:", areas);
+
+    const img = await skImageToMedia(skImage);
+
+    uploadImageMutation.mutate({
+      image: img,
+      areas: areas,
+    },
+    {
+      onSuccess: () => {
+        console.log("Imagem enviada com sucesso!");
+      },
+    }
+  
+    );
+  };
 
 
   useEffect(() => {
@@ -176,7 +205,7 @@ export default function HomeScreen() {
           </View>
         ) : (
           <View style={{ alignItems: "center" }}>
-            <Menu />
+            <Menu onSave={onSave} />
           </View>
         )}
       </View>
