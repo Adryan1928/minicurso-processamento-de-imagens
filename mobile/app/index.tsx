@@ -70,58 +70,48 @@ export default function HomeScreen() {
     runOnJS(() => setDimensions({
         x: imageXOffset.value,
         y: imageYOffset.value,
-        width: imageWidth.value - imageXOffset.value * 2,
-        height: imageHeight.value - imageYOffset.value * 2,
+        width: imageWidth.value,
+        height: imageHeight.value,
       }));
   });
 
 
   const drawGesture = Gesture.Pan()
     .runOnJS(true)
+    .minDistance(0)
+    .hitSlop({ top: 0, bottom: 0, left: 0, right: 0 })
     .enabled(tool === "draw")
     .onBegin(({ x, y }) => {
-      x = Math.max(0, Math.min(x, dimensions.width));
-      y = Math.max(0, Math.min(y, dimensions.height));
+      const xClamped = Math.max(
+        imageXOffset.value,
+        Math.min(x, imageXOffset.value + imageWidth.value)
+      );
 
-      const xPos = x + imageXOffset.value;
-      const yPos = y + imageYOffset.value;
+      const yClamped = Math.max(
+        imageYOffset.value,
+        Math.min(y, imageYOffset.value + imageHeight.value)
+      );
 
-      // path.value.reset();
-      // path.value.moveTo(xPos, yPos);
-      console.log("begin", x, y);
       currentPath.value.reset();
-      currentPath.value.moveTo(xPos, yPos);
+      currentPath.value.moveTo(xClamped, yClamped);
     })
     .onChange(({ x, y, translationX, translationY }) => {
-      x = Math.max(0, Math.min(x, dimensions.width));
-      y = Math.max(0, Math.min(y, dimensions.height));
+      const xClamped = Math.max(
+        imageXOffset.value,
+        Math.min(x, imageXOffset.value + imageWidth.value)
+      );
 
-      const xPos = x + imageXOffset.value;
-      const yPos = y + imageYOffset.value;
+      const yClamped = Math.max(
+        imageYOffset.value,
+        Math.min(y, imageYOffset.value + imageHeight.value)
+      );
 
-      console.log(x, y, translationX, translationY);
-
-      currentPath.value.lineTo(translationX, translationY);
+      currentPath.value.lineTo(xClamped, yClamped);
     })
     .onFinalize(() => {
       currentPath.value.close();
       runOnJS(savePath)();
-      console.log("finalize");
     });
-
-  const path = Skia.Path.Make();
-  path.moveTo(128, 0);
-  path.lineTo(168, 80);
-  path.lineTo(256, 93);
-  path.lineTo(192, 155);
-  path.lineTo(207, 244);
-  path.lineTo(128, 202);
-  path.lineTo(49, 244);
-  path.lineTo(64, 155);
-  path.lineTo(0, 93);
-  path.lineTo(88, 80);
-  path.lineTo(128, 0);
-  path.close();
 
   if (!skImage) {
     return (
@@ -138,29 +128,27 @@ export default function HomeScreen() {
       <StatusBar barStyle={"light-content"} />
 
       <View style={styles.containerImage}>
-        <GestureHandlerRootView style={{ width: "100%", height: "100%" }}>
+        <GestureHandlerRootView style={{ flex: 1 }}>
           <GestureDetector gesture={drawGesture}>
             <Canvas style={{ flex: 1 }} onSize={canvasSize}>
-              <Group>
-                <Image
-                  image={skImage}
-                  x={imageXOffset}
-                  y={imageYOffset}
-                  width={imageWidth}
-                  height={imageHeight}
+              <Image
+                image={skImage}
+                x={imageXOffset}
+                y={imageYOffset}
+                width={imageWidth}
+                height={imageHeight}
+              />
+              {paths.map((path, index) => (
+                <Path
+                  key={index}
+                  path={path}
+                  style="stroke"
+                  color="#0037ff"
+                  strokeWidth={4}
                 />
-                {paths.map((path, index) => (
-                  <Path
-                    key={index}
-                    path={path}
-                    style="stroke"
-                    color="#0037ff"
-                    strokeWidth={4}
-                  />
-                ))}
+              ))}
 
-                <Path path={path} style="stroke" strokeWidth={4} color="#37607050" />
-              </Group>
+              <Path path={currentPath} style="stroke" strokeWidth={4} color="#37607050" />
             </Canvas>
           </GestureDetector>
         </GestureHandlerRootView>
