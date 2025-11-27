@@ -70,7 +70,7 @@ export default function HomeScreen() {
     {
       onSuccess: (result) => {
         setPaths([]);
-        loadSkImage(`http://192.168.1.100:8000${result.data.url}`, false).then((loadedImg) => {
+        loadSkImage(`http://10.112.4.243:8000${result.data.url}`, false).then((loadedImg) => {
           if (loadedImg) {
             setSkImage(loadedImg);
           }

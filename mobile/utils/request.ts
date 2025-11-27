@@ -29,7 +29,7 @@ function onError(error: Error | AxiosError) {
 
 const request = axios.create({
   // baseURL: process.env.API_URL,
-  baseURL: "http://192.168.1.100:8000",
+  baseURL: "http://10.112.4.243:8000",
   responseType: "json",
   withCredentials: true,
 });

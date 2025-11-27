@@ -56,7 +56,7 @@ def draw_fill_or_blur_on_image(
         points_array = np.array(points, dtype=np.int32).reshape((-1, 1, 2))
 
         if area.is_fill:
-            cv2.fillPoly(image, pts=[points_array], color=(0, 0, 0))
+            cv2.fillPoly(image, pts=[points_array], color=(255, 0, 0))
         else:
             mask = np.zeros(image.shape[:2], dtype=np.uint8)
             cv2.fillPoly(mask, [points_array], 255)

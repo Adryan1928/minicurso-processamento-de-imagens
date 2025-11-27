@@ -31,7 +31,7 @@ class TestFillOrBlurDraw(unittest.TestCase):
             AreaDataFormat(
                 is_fill=False,
                 area_coordinates=self.coords_2,
-                intensity=5
+                intensity=1
             ),
         ]
 
